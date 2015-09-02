@@ -85,5 +85,10 @@ namespace WebcomicAssistant
                 lvSites.Items.Add(c);
             }
         }
+
+        private void OnClose(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Properties.Settings.Default.Save();
+        }
     }
 }

@@ -4,9 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WebcomicAssistant"
+        xmlns:p="clr-namespace:WebcomicAssistant.Properties"
         xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="Webcomic Assistant"
+        Height="{Binding Source={x:Static p:Settings.Default}, Path=Height, Mode=TwoWay}"
+        Width ="{Binding Source={x:Static p:Settings.Default}, Path=Width,  Mode=TwoWay}"
+        Left  ="{Binding Source={x:Static p:Settings.Default}, Path=Left,   Mode=TwoWay}"
+        Top   ="{Binding Source={x:Static p:Settings.Default}, Path=Top,    Mode=TwoWay}"
+        WindowState="{Binding Source={x:Static p:Settings.Default}, Path=WindowState, Mode=TwoWay}"
+        Closing="OnClose"
+        >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
