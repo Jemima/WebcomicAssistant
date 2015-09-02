@@ -1,0 +1,30 @@
+﻿<Window x:Class="WebcomicAssistant.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WebcomicAssistant"
+        xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+        <ListView Name="lvSites">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name"
+                                    DisplayMemberBinding="{Binding Path=Name}">
+                    </GridViewColumn>
+                    <GridViewColumn Header="Last Visited"
+                                    DisplayMemberBinding="{Binding Path=LastVisited}">
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <cefSharp:ChromiumWebBrowser Grid.Column="2"
+        Address="https://github.com/cefsharp/CefSharp/wiki/Frequently-asked-questions" />
+    </Grid>
+</Window>
