@@ -16,11 +16,8 @@
         Closing="OnClose"
         >
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*" />
-            <ColumnDefinition Width="2*" />
-        </Grid.ColumnDefinitions>
-        <ListView Name="lvSites">
+        <DockPanel>
+            <ListView Name="lvSites" DockPanel.Dock="Left" SelectionChanged="LoadComic">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Name"
@@ -32,7 +29,15 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <cefSharp:ChromiumWebBrowser Grid.Column="2"
-        Address="https://github.com/cefsharp/CefSharp/wiki/Frequently-asked-questions" />
+            <DockPanel LastChildFill="True" DockPanel.Dock="Top">
+                <Button Margin="5" Click="NavBack">&lt;--</Button>
+                <Button Margin="5" Click="NavForwards">--&gt;</Button>
+                <Button Margin="5" DockPanel.Dock="Right" Click="NavGo">Go</Button>
+                <TextBox KeyDown="NavKeyDown" Name="txtUrl" Height="25" Width="Auto" VerticalAlignment="Center" VerticalContentAlignment="Center">URL</TextBox>
+            </DockPanel>
+            <cefSharp:ChromiumWebBrowser Name="cefBrowser" DockPanel.Dock="Right"
+                Address="https://github.com/cefsharp/CefSharp/wiki/Frequently-asked-questions" />
+        </DockPanel>
+
     </Grid>
 </Window>

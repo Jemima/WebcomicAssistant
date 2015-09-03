@@ -14,6 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using CefSharp;
+using System.Collections.ObjectModel;
 
 namespace WebcomicAssistant
 {
@@ -22,6 +24,9 @@ namespace WebcomicAssistant
     /// </summary>
     public partial class MainWindow : Window
     {
+        Comic Current = null;
+        ObservableCollection<Comic> Comics;
+
         public List<Comic> LoadComics()
         {
             List<Comic> comics = new List<Comic>();
@@ -76,19 +81,68 @@ namespace WebcomicAssistant
             }
             return comics;
         }
+
         public MainWindow()
         {
             InitializeComponent();
+            cefBrowser.FrameLoadEnd += OnPageLoad;
+            Comics = new ObservableCollection<Comic>(LoadComics());
+            lvSites.ItemsSource = Comics;
+        }
 
-            foreach(Comic c in LoadComics())
+        private void OnPageLoad(object sender, FrameLoadEndEventArgs e)
+        {
+            this.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(OnPageLoadUIThread));
+        }
+
+        /// <summary>
+        ///  The actual OnPageLoad handler, we want to run in the context of the UI thread so we can update UI elements.
+        /// </summary>
+        private void OnPageLoadUIThread()
+        {
+            txtUrl.Text = cefBrowser.Address;
+            if (Current != null && Current.MatchAgainstUrl(cefBrowser.Address))
             {
-                lvSites.Items.Add(c);
+                Current.Update(cefBrowser.Address);
             }
         }
 
         private void OnClose(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Properties.Settings.Default.Save();
+        }
+
+        private void NavGo(object sender, RoutedEventArgs e)
+        {
+            cefBrowser.Load(txtUrl.Text);
+        }
+
+        private void NavForwards(object sender, RoutedEventArgs e)
+        {
+            cefBrowser.Forward();
+        }
+
+        private void NavBack(object sender, RoutedEventArgs e)
+        {
+            cefBrowser.Back();
+        }
+
+        private void NavKeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+            {
+                NavGo(sender, null);
+            }
+        }
+
+        private void LoadComic(object sender, RoutedEventArgs e)
+        {
+            if(Current != null)
+            {
+                Current.SaveChanges();
+            }
+            Current = this.lvSites.SelectedItem as Comic;
+            cefBrowser.Load(Current.Upto.ToString());
         }
     }
 }

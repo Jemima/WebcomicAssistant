@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace WebcomicAssistant
 {
-    public class Comic
+    public class Comic : INotifyPropertyChanged
     {
         public string Name
         {
@@ -20,14 +21,16 @@ namespace WebcomicAssistant
             get;
         }
 
-        public Uri Upto
+        public string Upto
         {
-            get;
+            get; private set;
         }
 
         string Error;
         Regex Pattern;
         string SourcePath;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Instantiates a site object from a file describing the comic.
@@ -48,7 +51,7 @@ namespace WebcomicAssistant
                 {
                     Name = stream.ReadLine();
                     Pattern = new Regex(stream.ReadLine(), RegexOptions.Compiled);
-                    Upto = new Uri(stream.ReadLine());
+                    Upto = stream.ReadLine();
                     LastVisited = File.GetLastWriteTime(file);
                 }
             }
@@ -57,6 +60,7 @@ namespace WebcomicAssistant
                 Error = e.ToString();
             }
         }
+
         public void SaveChanges()
         {
             using(StreamWriter stream = new StreamWriter(SourcePath + ".tmp"))
@@ -65,7 +69,27 @@ namespace WebcomicAssistant
                 stream.WriteLine(Pattern.ToString());
                 stream.WriteLine(Upto.ToString());
             }
-            File.Replace(SourcePath + ".tmp", SourcePath, null);
+            try {
+                File.Replace(SourcePath + ".tmp", SourcePath, null);
+            } catch (IOException)
+            {
+                // Keep the tmp file around, we'll recover it later.
+            }
+        }
+
+        /// <summary>
+        /// Tests the URL to see if it's this comic or not.
+        /// </summary>
+        /// <returns>true if the url looks like it's for this webcomic, false otherwise</returns>
+        public bool MatchAgainstUrl(string Url)
+        {
+            return Pattern.IsMatch(Url);
+        }
+
+        public void Update(string Url)
+        {
+            Upto = Url;
+            SaveChanges();
         }
     }
 }
