@@ -17,26 +17,28 @@
         >
     <Grid>
         <DockPanel>
-            <ListView Name="lvSites" DockPanel.Dock="Left" SelectionChanged="LoadComic">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Name"
-                                    DisplayMemberBinding="{Binding Path=Name}">
-                    </GridViewColumn>
-                    <GridViewColumn Header="Last Visited"
-                                    DisplayMemberBinding="{Binding Path=LastVisited}">
-                    </GridViewColumn>
-                </GridView>
-            </ListView.View>
-        </ListView>
+            <DockPanel DockPanel.Dock="Left">
+                <Button Click="OpenSitesFolder" DockPanel.Dock="Bottom">Open Sites Folder</Button>
+                <ListView Name="lvSites" DockPanel.Dock="Bottom" SelectionChanged="LoadComic">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Name"
+                                            DisplayMemberBinding="{Binding Path=Name}">
+                            </GridViewColumn>
+                            <GridViewColumn Header="Last Visited"
+                                            DisplayMemberBinding="{Binding Path=LastVisited}">
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
             <DockPanel LastChildFill="True" DockPanel.Dock="Top">
                 <Button Margin="5" Click="NavBack">&lt;--</Button>
                 <Button Margin="5" Click="NavForwards">--&gt;</Button>
                 <Button Margin="5" DockPanel.Dock="Right" Click="NavGo">Go</Button>
                 <TextBox KeyDown="NavKeyDown" Name="txtUrl" Height="25" Width="Auto" VerticalAlignment="Center" VerticalContentAlignment="Center">URL</TextBox>
             </DockPanel>
-            <cefSharp:ChromiumWebBrowser Name="cefBrowser" DockPanel.Dock="Right"
-                Address="https://github.com/cefsharp/CefSharp/wiki/Frequently-asked-questions" />
+            <cefSharp:ChromiumWebBrowser Name="cefBrowser" DockPanel.Dock="Right" />
         </DockPanel>
 
     </Grid>

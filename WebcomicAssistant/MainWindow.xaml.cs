@@ -16,16 +16,94 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using CefSharp;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace WebcomicAssistant
 {
+    public class SiteFilter : IRequestHandler
+    {
+        private MainWindow window;
+
+        public SiteFilter(MainWindow window)
+        {
+            this.window = window;
+        }
+
+        public bool GetAuthCredentials(IWebBrowser browser, bool isProxy, string host, int port, string realm, string scheme, ref string username, ref string password)
+        {
+            return false;
+        }
+
+        public bool OnBeforeBrowse(IWebBrowser browser, IRequest request, bool isRedirect, bool isMainFrame)
+        {
+            if (window.Current == null ||
+                isMainFrame == false   ||
+                window.Current.MatchAgainstUrl(request.Url))
+            {
+                // subframe, no current comic or page matches the current comic. Continue to load the page.
+                return false;
+            }
+            else if (window.DuringUserNavigation)
+            {
+                // The user has manually navigated somewhere (typing in URL bar, back button, etc).
+                // Search to see if it's a different comic and set it active if so.
+                foreach(Comic c in window.Comics)
+                {
+                    if (c.MatchAgainstUrl(request.Url))
+                    {
+                        // Active comic switched, continue as normal.
+                        window.Current.SaveChanges();
+                        window.Current = c;
+                        window.DuringUserNavigation = false;
+                        return false;
+                    }
+                }
+                // Not a comic, but the user chose to navigate to it, so we unset the current comic
+                // and go back to being a basic web browser.
+                window.Current.SaveChanges();
+                window.Current = null;
+                window.DuringUserNavigation = false;
+                return false;
+            }
+            else
+            {
+                // Navigating outside our webcomic, open in the user's default browser
+                System.Diagnostics.Process.Start(request.Url);
+                return true;
+            }
+        }
+
+        public bool OnBeforePluginLoad(IWebBrowser browser, string url, string policyUrl, WebPluginInfo info)
+        {
+            return true;
+        }
+
+        public CefReturnValue OnBeforeResourceLoad(IWebBrowser browser, IRequest request, bool isMainFrame)
+        {
+            return CefReturnValue.Continue;
+        }
+
+        public bool OnCertificateError(IWebBrowser browser, CefErrorCode errorCode, string requestUrl)
+        {
+            return false;
+        }
+
+        public void OnPluginCrashed(IWebBrowser browser, string pluginPath)
+        {
+        }
+
+        public void OnRenderProcessTerminated(IWebBrowser browser, CefTerminationStatus status)
+        {
+        }
+    }
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        Comic Current = null;
-        ObservableCollection<Comic> Comics;
+        public Comic Current;
+        public bool DuringUserNavigation;
+        public ObservableCollection<Comic> Comics;
 
         public List<Comic> LoadComics()
         {
@@ -86,8 +164,19 @@ namespace WebcomicAssistant
         {
             InitializeComponent();
             cefBrowser.FrameLoadEnd += OnPageLoad;
+            cefBrowser.RequestHandler = new SiteFilter(this);
             Comics = new ObservableCollection<Comic>(LoadComics());
             lvSites.ItemsSource = Comics;
+            Comic last = Comics[0];
+            foreach(Comic comic in Comics)
+            {
+                if(comic.LastVisited > last.LastVisited)
+                {
+                    last = comic;
+                }
+            }
+            Current = last;
+            cefBrowser.Load(Current.Upto);
         }
 
         private void OnPageLoad(object sender, FrameLoadEndEventArgs e)
@@ -101,7 +190,10 @@ namespace WebcomicAssistant
         private void OnPageLoadUIThread()
         {
             txtUrl.Text = cefBrowser.Address;
-            if (Current != null && Current.MatchAgainstUrl(cefBrowser.Address))
+
+            // If we haven't opened the first comic yet the user can do whatever.
+            if (Current != null &&
+                Current.MatchAgainstUrl(cefBrowser.Address))
             {
                 Current.Update(cefBrowser.Address);
             }
@@ -114,16 +206,19 @@ namespace WebcomicAssistant
 
         private void NavGo(object sender, RoutedEventArgs e)
         {
+            DuringUserNavigation = true;
             cefBrowser.Load(txtUrl.Text);
         }
 
         private void NavForwards(object sender, RoutedEventArgs e)
         {
+            DuringUserNavigation = true;
             cefBrowser.Forward();
         }
 
         private void NavBack(object sender, RoutedEventArgs e)
         {
+            DuringUserNavigation = true;
             cefBrowser.Back();
         }
 
@@ -142,7 +237,12 @@ namespace WebcomicAssistant
                 Current.SaveChanges();
             }
             Current = this.lvSites.SelectedItem as Comic;
-            cefBrowser.Load(Current.Upto.ToString());
+            cefBrowser.Load(Current.Upto);
+        }
+
+        private void OpenSitesFolder(object sender, RoutedEventArgs e)
+        {
+            Process.Start(Directory.GetParent(Current.SourcePath).FullName);
         }
     }
 }

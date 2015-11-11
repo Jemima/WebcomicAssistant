@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace WebcomicAssistant
 {
-    public class Comic : INotifyPropertyChanged
+    public class Comic /*: INotifyPropertyChanged*/
     {
         public string Name
         {
@@ -28,9 +28,12 @@ namespace WebcomicAssistant
 
         string Error;
         Regex Pattern;
-        string SourcePath;
+        public string SourcePath
+        {
+            get; private set;
+        }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        //public event PropertyChangedEventHandler PropertyChanged;
 
         /// <summary>
         /// Instantiates a site object from a file describing the comic.
