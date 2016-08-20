@@ -75,12 +75,33 @@ namespace WebcomicAssistant
 
         public bool OnBeforePluginLoad(IWebBrowser browser, string url, string policyUrl, WebPluginInfo info)
         {
-            return true;
+            return false;
+        }
+
+        private bool UriCompare(Uri a, Uri b)
+        {
+            string sa = a.Host;
+            string sb = b.Host;
+            if(sa.Contains(sb) || sb.Contains(sa))
+            {
+                // One host is a subset of the other e.g. files.explosm.net and explosm.net
+                return true;
+            }
+            // TODO: Handle cases like www.comic.com vs images.comic.com
+            // when I run into a webcomic which is affected
+            return false;
         }
 
         public CefReturnValue OnBeforeResourceLoad(IWebBrowser browser, IRequest request, bool isMainFrame)
         {
-            return CefReturnValue.Continue;
+            if(UriCompare(new Uri(request.Url), new Uri(window.Current.Upto)))
+            {
+                return CefReturnValue.Continue;
+            }
+            else
+            {
+                return CefReturnValue.Cancel;
+            }
         }
 
         public bool OnCertificateError(IWebBrowser browser, CefErrorCode errorCode, string requestUrl)
